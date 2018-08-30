@@ -101,55 +101,6 @@ impl OptimizedExpr {
         OptimizedExprTopDownIterator::new(self)
     }
 
-    pub fn map_top_down<F>(self, mut f: F) -> OptimizedExpr
-    where
-        F: FnMut(OptimizedExpr) -> OptimizedExpr
-    {
-        fn map_internal<F>(expr: OptimizedExpr, f: &mut F) -> OptimizedExpr
-        where
-            F: FnMut(OptimizedExpr) -> OptimizedExpr
-        {
-            let expr = f(expr);
-
-            match expr {
-                // TODO: Use box syntax when it gets stabilized.
-                OptimizedExpr::PosPred(expr) => {
-                    let mapped = Box::new(map_internal(*expr, f));
-                    OptimizedExpr::PosPred(mapped)
-                }
-                OptimizedExpr::NegPred(expr) => {
-                    let mapped = Box::new(map_internal(*expr, f));
-                    OptimizedExpr::NegPred(mapped)
-                }
-                OptimizedExpr::Seq(lhs, rhs) => {
-                    let mapped_lhs = Box::new(map_internal(*lhs, f));
-                    let mapped_rhs = Box::new(map_internal(*rhs, f));
-                    OptimizedExpr::Seq(mapped_lhs, mapped_rhs)
-                }
-                OptimizedExpr::Choice(lhs, rhs) => {
-                    let mapped_lhs = Box::new(map_internal(*lhs, f));
-                    let mapped_rhs = Box::new(map_internal(*rhs, f));
-                    OptimizedExpr::Choice(mapped_lhs, mapped_rhs)
-                }
-                OptimizedExpr::Rep(expr) => {
-                    let mapped = Box::new(map_internal(*expr, f));
-                    OptimizedExpr::Rep(mapped)
-                }
-                OptimizedExpr::Opt(expr) => {
-                    let mapped = Box::new(map_internal(*expr, f));
-                    OptimizedExpr::Opt(mapped)
-                }
-                OptimizedExpr::Push(expr) => {
-                    let mapped = Box::new(map_internal(*expr, f));
-                    OptimizedExpr::Push(mapped)
-                }
-                expr => expr
-            }
-        }
-
-        map_internal(self, &mut f)
-    }
-
     pub fn map_bottom_up<F>(self, mut f: F) -> OptimizedExpr
     where
         F: FnMut(OptimizedExpr) -> OptimizedExpr
